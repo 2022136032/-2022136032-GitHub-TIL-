@@ -1,2 +1,1 @@
-# -2022136032-GitHub-TIL-
-2주차
+READme.md
