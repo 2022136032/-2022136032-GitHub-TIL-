@@ -1,0 +1,87 @@
+void main() {
+// List 선언 방법과 유형 확인
+List nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+var nums2 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+var nums3 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+var nums4 = List.generate(10, (색인) => 색인 + 1);
+
+print(nums);
+print(nums2);
+print(nums3);
+print(nums4);
+print(nums.runtimeType); // _GrowableList
+print(nums2.runtimeType); // _GrowableList
+print(nums3.runtimeType); // _GrowableList
+print(nums4.runtimeType); // _GrowableList
+
+// 목록 항목 제거 (논리적 오류 수정)
+// RemoveWhere는 조건에 맞는 항목을 모두 제거합니다.
+var newNums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+newNums.removeWhere((num) => num % 2 == 0); // 짝수 제거
+print(newNums); //결과 : [1, 3, 5, 7, 9]
+
+var newNums2 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+newNums2.removeWhere((num) => num % 2 == 1); // 홀수 제거
+print(newNums2); //결과 : [2, 4, 6, 8, 10]
+
+// 설정 (중복방지)
+var SnackNames = {'새우깡', '새우깡', '빈츠', '페레로로쉐', '빼빼로', '썬칩'};
+print(snackNames); // {새우깡, 빈츠, 페레로로쉐, 빼빼로, 썬칩}
+
+var userInfo = {
+'name': '개발하는 남자',
+'age': '23',
+'phone': '010-xxxx-xxxx',
+};
+인쇄(userInfo.runtimeType); // _InternalLinkedHashMap<String, String>
+print(userInfo['name']);
+print(userInfo['나이']);
+print(userInfo['전화']);
+
+userInfo['phone'] = '010-1111-1111';
+인쇄(사용자 정보); // {이름: 개발하는 남자, 나이: 23, 전화번호: 010-1111-1111}
+
+// enum (열거형)
+enum ColorType {
+RED(0),
+YELLOW(1),
+BLUE(2);
+
+final int code;
+const ColorType(this.code);
+}
+
+var selectedColor = ColorType.RED;
+print(selectedColor.code);
+if (selectedColor == ColorType.RED) {
+print('빨강색!');
+}
+
+// 대칭 및 제어문
+print(5 + 4); // 9
+
+int a = 5;
+int b = 4;
+int c = a + b;
+print(c); // 9
+
+var 결과 = 5 + 4 * 2; //
+print(result); // 13
+
+var a2 = 30;
+var b2 = 20;
+var c2 = 39;
+
+print(a2 < b2); // 거짓
+print(a2 < c2); // 참
+print(a2 > c2); // 거짓
+
+var res = a2 + b2;
+print(res); // 50
+
+if (a2 < b2) {
+print('a가 b보다 작다.');
+} else {
+print('a가 b보다 더.');
+}
+}
