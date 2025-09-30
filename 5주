@@ -1,1 +1,31 @@
+void main() {
+//Hello World 출력
+  //print('Hello, Dart!');
+  
+  //이름을 변수로 담아 출력
+  var name = '정세일';
+  //print('나는 ' + name + '입니다.');
+  
+  //보간 문자열을 이용해 출력 코드 변경
+  print('나는 $name입니다.');
+  
+  //for문을 통해 10번 출력
+  //for (var i = 1; i <= 10; i++) {
+  print('나는 $name입니다$i.');
+  // }
+  //이름 변경 출력횟수 변경
+  // var name = '정세일';
+  // var count = 10;
+  // for (var i = 1; i <= 10; i++) {
+  // if (i % 2 == 0) {
+  // print ('나는 $name입니다$count.');
+  // }
+  // }
+// 위 코드 함수로 분리
+  func('이기용', 10):
+  func('디모이', 20):
+}
 
+void func(String name, int conut) {
+  
+}
