@@ -1,0 +1,165 @@
+OOP 4대 특성
+캡슐화: 데이터와 메서드를 하나의 단위로 묶어 외부에서 접근을 제한하는 구조
+상속: 기존 클래스의 특성을 하위 클래스에 물려주는 재사용 기법
+추상화: 복잡한 현실을 단순화해 핵심만 남기는 설계 방식
+다형성: 같은 인터페이스로 다양한 형태(실제 객체)를 처리할 수 있는 능력
+캡슐화되지 않은 코드
+class BankAccount {
+  double balance = 0.0; // 누구나 접근 가능
+
+  void deposit(double amount) {
+    balance += amount;
+  }
+}
+캡슐화된 코드
+dart
+class BankAccount {
+  double _balance = 0.0; // private 변수
+
+  double get balance => _balance; // 읽기 전용 getter
+
+  void deposit(double amount) {
+    if (amount > 0) {
+      _balance += amount;
+    }
+  }
+}
+dart
+void main() {
+  var account = BankAccount();
+  account.deposit(1000);
+  print(account.balance); // 1000 출력
+
+  // account._balance = -500; // 접근 불가
+}
+OOP의 핵심 장점
+코드 재사용성: 중복 없이 여러 곳에서 재활용 가능
+유지보수 용이: 변경이 필요한 부분만 수정하면 됨
+확장성: 새로운 기능을 쉽게 추가 가능
+현실 세계 모델링: 사람, 동물, 자동차 등 실생활 개념을 코드로 표현하기 쉬움
+
+절차지향 방식 (OOP ❌)
+dart
+double balance = 0;
+
+void deposit(double amount) {
+  balance += amount;
+}
+
+void withdraw(double amount) {
+  balance -= amount;
+}
+
+void main() {
+  deposit(1000);
+  withdraw(200);
+  print(balance); // 800
+}
+객체지향 방식 (OOP ⭕
+dart
+class BankAccount {
+  double _balance = 0;
+
+  void deposit(double amount) {
+    if (amount > 0) _balance += amount;
+  }
+
+  void withdraw(double amount) {
+    if (amount <= _balance) _balance -= amount;
+  }
+
+  double get balance => _balance;
+}
+
+void main() {
+  var account = BankAccount();
+  account.deposit(1000);
+  account.withdraw(200);
+  print(account.balance); // 800
+}
+
+2. 상속 예시 (잘 디자인된 구조)
+dart
+class Animal {
+  void move() => print("움직입니다");
+}
+
+class Bird extends Animal {
+  void fly() => print("날아갑니다");
+}
+
+class Fish extends Animal {
+  void swim() => print("헤엄칩니다");
+}
+
+void main() {
+  Bird b = Bird();
+  b.move(); // 상속된 메서드
+  b.fly();  // 고유 메서드
+
+  Fish f = Fish();
+  f.move();
+  f.swim();
+}
+3. 추상화란? 왜 필요할까?
+복잡한 시스템에서 핵심만 드러내고, 세부 구현은 숨기는 것
+
+dart
+abstract class Vehicle {
+  void move(); // 추상 메서드
+}
+
+class Car extends Vehicle {
+  @override
+  void move() => print("자동차가 달립니다");
+}
+
+class Boat extends Vehicle {
+  @override
+  void move() => print("보트가 떠다닙니다");
+}
+
+void main() {
+  Vehicle v = Car();
+  v.move(); // 자동차가 달립니다
+}
+4. 인터페이스는 왜 필요할까?
+상속은 단일 클래스만 가능하지만,
+
+인터페이스는 여러 개 구현 가능 → 유연한 설계
+
+dart
+class Flyable {
+  void fly();
+}
+
+class Swimmable {
+  void swim();
+}
+
+class Duck implements Flyable, Swimmable {
+  @override
+  void fly() => print("오리가 날아요");
+
+  @override
+  void swim() => print("오리가 헤엄쳐요");
+}
+인터페이스의 단점
+구현 강제: 모든 메서드를 직접 구현해야 함
+
+코드 중복 발생 가능
+
+✅ mixin으로 개선
+dart
+mixin Logger {
+  void log(String msg) => print("로그: $msg");
+}
+
+class Service with Logger {
+  void run() {
+    log("서비스 시작");
+  }
+}
+Logger는 기능을 직접 구현한 채로 재사용 가능
+
+with 키워드로 다중 믹스인 조합 가능
