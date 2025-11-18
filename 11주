@@ -1,0 +1,99 @@
+import 'package:flutter/material.dart';
+
+class App extends StatelessWidget {
+  const App({super.key}); 
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Image.asset('assets/images/sample.png'),
+      ),
+      );
+  }
+}
+
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key}); // const 생성자 추가
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Bamtol Market App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const CounterPage(),
+    );
+  }
+}
+
+class CounterPage extends StatefulWidget {
+  const CounterPage({Key? key}) : super(key: key);
+
+  @override
+  State<CounterPage> createState() => _CounterPageState();
+}
+
+class _CounterPageState extends State<CounterPage> {
+  int _counter = 0;
+  static const _prefKey = 'counter_value';
+  
+  // ignore: non_constant_identifier_names
+  get SharedPreferences => null;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCounter();
+  }
+
+  Future<void> _loadCounter() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _counter = prefs.getInt(_prefKey) ?? 0;
+      });
+    } catch (e) {
+      // SharedPreferences 로드 실패 시 0으로 초기화
+      setState(() {
+        _counter = 0;
+      });
+    }
+  }
+
+  Future<void> _incrementCounter() async {
+    setState(() {
+      _counter++;
+    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_prefKey, _counter);
+    } catch (e) {
+      // 저장 실패 무시(네트워크와 무관)
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Counter (persistent)')),
+      body: Center(
+        child: Text(
+          '$_counter',
+          style: const TextStyle(fontSize: 64, fontWeight: FontWeight.bold),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
