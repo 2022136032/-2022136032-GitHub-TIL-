@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  // 앱의 진입점. const MyApp()을 실행합니다.
+
   runApp(const MyApp());
 }
 
@@ -10,18 +10,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // MaterialApp 위젯으로 전체 앱의 기본 구성을 정의합니다.
+
     return MaterialApp(
       title: 'Bamtol Market App', // 앱 타이틀 변경
       
-      // 요청하신 테마 설정 (기존 코드의 문법 오류 수정)
       theme: ThemeData(
         // ColorScheme.fromSeed를 사용하여 시드 색상 기반의 색상 테마를 만듭니다.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple), 
         useMaterial3: true, // Material 3 디자인 시스템 사용
       ),
-      
-      // 앱의 홈 화면을 정의합니다.
+ 
       home: Scaffold(
         // Scaffold는 앱의 기본적인 구조(바디, 앱바 등)를 제공합니다.
         body: Center(
