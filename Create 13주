@@ -1,0 +1,257 @@
+import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+
+void main() => runApp(const BallApp());
+
+class BallApp extends StatelessWidget {
+  const BallApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: BallPage(),
+    );
+  }
+}
+
+class BallPage extends StatefulWidget {
+  const BallPage({super.key});
+
+  @override
+  State<BallPage> createState() => _BallPageState();
+}
+
+class _BallPageState extends State<BallPage> with TickerProviderStateMixin {
+  // 물리 파라미터 (원하는 값으로 조정)
+  final double _radius = 30.0; // 공 반지름 (px)
+  final double _gravity = 2000.0; // 중력 가속도 (px/s^2)
+  final double _restitution = 0.78; // 벽과의 반발 계수 (0..1)
+  final double _airDragPerSecond = 0.998; // 공기 저항 계수 (1에 가까울수록 저항 작음)
+
+  late Ticker _ticker;
+  double _lastTickTime = 0.0; // 초 단위
+  Offset _position = Offset.zero; // 공의 중심 위치 (px)
+  Offset _velocity = Offset.zero; // px/s
+  bool _dragging = false;
+
+  // 최근 드래그 샘플(속도 계산용)
+  final List<Map<String, double>> _samples = [];
+
+  Size _areaSize = Size.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = createTicker(_onTick)..start();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  void _onTick(Duration elapsed) {
+    final double t = elapsed.inMicroseconds / 1e6;
+    double dt = (_lastTickTime == 0.0) ? 0.0 : (t - _lastTickTime);
+    _lastTickTime = t;
+    if (dt <= 0) return;
+
+    if (!_dragging) {
+      // 물리 업데이트
+      // 1) 중력 적용
+      _velocity = _velocity + Offset(0, _gravity * dt);
+
+      // 2) 공기 저항 (지수적 감소)
+      final double dragFactor = pow(_airDragPerSecond, dt).toDouble();
+      _velocity = _velocity * dragFactor;
+
+      // 3) 위치 업데이트
+      _position = _position + _velocity * dt;
+
+      // 4) 경계 충돌 및 반발
+      final double left = _radius;
+      final double right = max(_areaSize.width - _radius, left);
+      final double top = _radius;
+      final double bottom = max(_areaSize.height - _radius, top);
+
+      // X축 충돌
+      if (_position.dx < left) {
+        _position = Offset(left, _position.dy);
+        _velocity = Offset(-_velocity.dx * _restitution, _velocity.dy);
+      } else if (_position.dx > right) {
+        _position = Offset(right, _position.dy);
+        _velocity = Offset(-_velocity.dx * _restitution, _velocity.dy);
+      }
+
+      // Y축 충돌
+      if (_position.dy < top) {
+        _position = Offset(_position.dx, top);
+        _velocity = Offset(_velocity.dx, -_velocity.dy * _restitution);
+      } else if (_position.dy > bottom) {
+        _position = Offset(_position.dx, bottom);
+        _velocity = Offset(_velocity.dx, -_velocity.dy * _restitution);
+      }
+
+      // 작은 속도 임계값에서 정지 처리 (무한 흔들림 방지)
+      if (_velocity.distance < 5.0) {
+        _velocity = Offset.zero;
+      }
+
+      setState(() {});
+    }
+  }
+
+  void _onPanStart(DragStartDetails details) {
+    _dragging = true;
+    _samples.clear();
+    final now = _nowSeconds();
+    _samples.add({'x': details.localPosition.dx, 'y': details.localPosition.dy, 't': now});
+    // 위치를 누른 지점으로 즉시 이동
+    _position = details.localPosition;
+    _velocity = Offset.zero;
+    setState(() {});
+  }
+
+  void _onPanUpdate(DragUpdateDetails details) {
+    final pos = details.localPosition;
+    final now = _nowSeconds();
+    _samples.add({'x': pos.dx, 'y': pos.dy, 't': now});
+    // 최근 샘플만 유지 (속도 계산 시 최신 6개 정도만 필요)
+    if (_samples.length > 8) _samples.removeAt(0);
+
+    _position = pos;
+    setState(() {});
+  }
+
+  void _onPanEnd(DragEndDetails details) {
+    final now = _nowSeconds();
+    // 속도 계산: 최근 샘플들로 선형 보간한 평균 속도 사용
+    if (_samples.length >= 2) {
+      final last = _samples.last;
+      // find a sample ~0.03..0.12s before the last to smooth spikes
+      double cutoff = (last['t'] ?? now) - 0.06;
+      Map<String, double>? from;
+      for (int i = _samples.length - 2; i >= 0; i--) {
+        if ((_samples[i]['t'] ?? 0.0) <= cutoff) {
+          from = _samples[i];
+          break;
+        }
+      }
+      from ??= _samples.first;
+      final dt = (last['t']! - from['t']!).clamp(1e-6, 1e6);
+      final vx = (last['x']! - from['x']!) / dt;
+      final vy = (last['y']! - from['y']!) / dt;
+      _velocity = Offset(vx, vy);
+    } else {
+      // fallback: 드래그 엔드의 예측 속도 사용
+      _velocity = details.velocity.pixelsPerSecond;
+    }
+
+    _dragging = false;
+    _samples.clear();
+    setState(() {});
+  }
+
+  double _nowSeconds() => DateTime.now().microsecondsSinceEpoch / 1e6;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: LayoutBuilder(builder: (context, constraints) {
+        final newArea = Size(constraints.maxWidth, constraints.maxHeight);
+        if (_areaSize != newArea) {
+          _areaSize = newArea;
+          // 초기 위치를 화면 중앙으로 설정
+          if (_position == Offset.zero) {
+            _position = Offset(_areaSize.width / 2, _areaSize.height / 2);
+          } else {
+            // 화면 크기 변경 시 공을 화면 안으로 보정
+            final left = _radius;
+            final right = max(_areaSize.width - _radius, left);
+            final top = _radius;
+            final bottom = max(_areaSize.height - _radius, top);
+            _position = Offset(
+              _position.dx.clamp(left, right),
+              _position.dy.clamp(top, bottom),
+            );
+          }
+        }
+
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onPanStart: _onPanStart,
+          onPanUpdate: _onPanUpdate,
+          onPanEnd: _onPanEnd,
+          child: Stack(
+            children: [
+              // 배경
+              Container(color: const Color(0xFF0B1220)),
+              // 공
+              Positioned(
+                left: _position.dx - _radius,
+                top: _position.dy - _radius,
+                child: _BallWidget(radius: _radius, dragging: _dragging),
+              ),
+              // 간단한 HUD: 속도 표시
+              Positioned(
+                left: 12,
+                top: 40,
+                child: _Hud(velocity: _velocity),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _BallWidget extends StatelessWidget {
+  final double radius;
+  final bool dragging;
+  const _BallWidget({required this.radius, required this.dragging});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: radius * 2,
+      height: radius * 2,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: dragging ? [Colors.orangeAccent, Colors.deepOrange] : [Colors.lightBlueAccent, Colors.blue],
+          center: const Alignment(-0.3, -0.3),
+          radius: 0.9,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.45),
+            offset: const Offset(4, 6),
+            blurRadius: 10,
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class _Hud extends StatelessWidget {
+  final Offset velocity;
+  const _Hud({required this.velocity});
+
+  @override
+  Widget build(BuildContext context) {
+    final speed = velocity.distance;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(6)),
+      child: Text(
+        '속도: ${speed.toStringAsFixed(0)} px/s',
+        style: const TextStyle(color: Colors.white, fontSize: 13),
+      ),
+    );
+  }
+}
