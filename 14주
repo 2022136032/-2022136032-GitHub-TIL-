@@ -1,0 +1,49 @@
+import 'package:flutter/material.dart';
+
+// AppFontDark가 'app_font.dart' 파일에 있다고 가정하고 임포트
+import '../../lib/widgets/app_font.dart';
+
+// 사용자 정의 버튼 위젯
+class Btn extends StatelessWidget {
+  // 버튼이 눌렸을 때 실행될 콜백 함수
+  final VoidCallback? onTap;
+  // 버튼 내부에 들어갈 위젯
+  final Widget child;
+  // 버튼의 배경색 (당근마켓 주황색을 기본으로 설정)
+  final Color color;
+  // 버튼의 가로 너비
+  final double width;
+
+  const Btn({
+    super.key,
+    required this.child,
+    required this.onTap,
+    this.color = const Color(0xFFFF7E36), // 기본 색상: 주황색
+    this.width = double.infinity, // 기본 너비: 부모 위젯의 최대 너비
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // GestureDetector: 탭 이벤트를 감지합니다.
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        // 모서리를 둥글게 처리합니다.
+        borderRadius: BorderRadius.circular(7),
+        child: Container(
+          // 버튼의 배경색을 설정합니다.
+          color: color,
+          // 버튼 내부의 패딩을 설정합니다.
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          // 버튼의 너비를 설정합니다.
+          width: width,
+          // 텍스트 정렬을 중앙으로 설정합니다.
+          alignment: Alignment.center,
+
+          // 버튼 내부에 들어갈 콘텐츠
+          child: child,
+        ),
+      ),
+    );
+  }
+}
