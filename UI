@@ -1,0 +1,264 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Camera, Home, LayoutList, MessageSquare, MapPin, User, ChevronRight, X, Search, Bell } from 'lucide-react';
+
+// --- Color and Theme Constants (Karrot Dark Theme) ---
+const PRIMARY_COLOR = '#FF7E36';
+const DARK_BG = '#1C1C1E';
+const DARK_CARD = '#2C2C2E';
+const GRAY_TEXT = '#A0A0A0';
+
+// --- Shared UI Components ---
+
+const AppFont = ({ children, className = "", color = 'text-white', fontWeight = 'font-normal', fontSize = 'text-base' }) => (
+  <span className={`${className} ${color} ${fontWeight} ${fontSize}`}>{children}</span>
+);
+
+const CommonLayout = ({ title, body, actions, withAppBar = true, isLoading = false }) => (
+  <div className="flex flex-col h-full bg-[#1C1C1E] text-white">
+    {withAppBar && (
+      <header className="flex items-center justify-between p-4 border-b border-gray-700/50 bg-[#1C1C1E] sticky top-0 z-10">
+        <button className="flex items-center text-white" onClick={() => window.history.back()}>
+            <ChevronRight size={20} className="rotate-180" />
+            <AppFont className="ml-1" fontWeight="font-bold">{title || '뒤로'}</AppFont>
+        </button>
+        <div className="flex space-x-4">
+          {actions}
+        </div>
+      </header>
+    )}
+    <main className="flex-grow overflow-y-auto">
+      {body}
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="w-8 h-8 border-4 border-t-4 border-gray-700 rounded-full animate-spin" style={{ borderTopColor: PRIMARY_COLOR }}></div>
+        </div>
+      )}
+    </main>
+  </div>
+);
+
+// --- Main Screen (View) ---
+const MainScreen = ({ navigate }) => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const pages = [
+    { name: '홈', icon: Home, content: <HomePage navigate={navigate} /> },
+    { name: '동네생활', icon: LayoutList, content: <div className="p-4 text-center">동네생활 피드</div> },
+    { name: '내 근처', icon: MapPin, content: <div className="p-4 text-center">내 근처 지도</div> },
+    { name: '채팅', icon: MessageSquare, content: <div className="p-4 text-center">채팅 목록</div> },
+    { name: '나의 당근', icon: User, content: <div className="p-4 text-center">나의 당근 설정</div> },
+  ];
+
+  const currentPage = pages[selectedIndex];
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* App Bar (Home Page Style) */}
+      <header className="flex items-center justify-between p-4 border-b border-gray-700/50 bg-[#1C1C1E] sticky top-0 z-10">
+        <AppFont fontSize="text-xl" fontWeight="font-bold">역삼동</AppFont>
+        <div className="flex space-x-4">
+          <Search size={24} className="text-white" />
+          <Bell size={24} className="text-white" />
+        </div>
+      </header>
+
+      {/* Body Content */}
+      <main className="flex-grow overflow-y-auto">
+        {currentPage.content}
+      </main>
+
+      {/* Floating Action Button (for Home tab only) */}
+      {selectedIndex === 0 && (
+        <button
+          onClick={() => navigate('write')}
+          className="absolute bottom-20 right-5 w-14 h-14 rounded-full shadow-lg transition duration-200"
+          style={{ backgroundColor: PRIMARY_COLOR }}
+          aria-label="글쓰기"
+        >
+          <div className="flex items-center justify-center h-full">
+            <X size={28} className="text-white rotate-45" />
+          </div>
+        </button>
+      )}
+
+      {/* Bottom Navigation Bar */}
+      <nav className="flex justify-around p-2 border-t border-gray-700/50 bg-[#1C1C1E]">
+        {pages.map((item, index) => (
+          <button
+            key={index}
+            onClick={() => setSelectedIndex(index)}
+            className="flex flex-col items-center p-1 transition duration-150"
+          >
+            <item.icon size={24} color={selectedIndex === index ? PRIMARY_COLOR : GRAY_TEXT} />
+            <AppFont fontSize="text-xs" color={selectedIndex === index ? `text-[${PRIMARY_COLOR}]` : `text-[${GRAY_TEXT}]`}>
+              {item.name}
+            </AppFont>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+};
+
+// --- Home Page (Part of MainScreen) ---
+const HomePage = ({ navigate }) => (
+  <div className="p-4">
+    <AppFont fontSize="text-lg" fontWeight="font-bold">인기 상품</AppFont>
+    <div className="mt-4 space-y-4">
+      {/* Mock Product List Item */}
+      {[1, 2, 3].map(i => (
+        <div key={i} className="flex space-x-3 border-b border-gray-700/50 pb-4">
+          <div className="w-24 h-24 bg-gray-700 rounded-lg flex items-center justify-center">
+            <AppFont color="text-gray-500">이미지 {i}</AppFont>
+          </div>
+          <div className="flex-grow">
+            <AppFont fontSize="text-lg" fontWeight="font-medium">아이폰 15 프로 맥스</AppFont>
+            <AppFont color={`text-[${GRAY_TEXT}]`} fontSize="text-sm">강남구 · 1시간 전</AppFont>
+            <AppFont fontSize="text-base" fontWeight="font-bold">1,200,000원</AppFont>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// --- Product Write Page (Controller/Logic Mock) ---
+const ProductWritePage = ({ navigate }) => {
+  const [title, setTitle] = useState('');
+  const [price, setPrice] = useState('');
+  const [description, setDescription] = useState('');
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const isFormValid = title.length > 0 && price.length > 0 && description.length > 0;
+  
+  // Mock image picker
+  const pickImages = () => {
+    if (images.length < 10) {
+      // Simulate adding a new image
+      setImages([...images, { id: images.length + 1, path: `mock_path_${Date.now()}` }]);
+    }
+  };
+
+  const removeImage = (idToRemove) => {
+    setImages(images.filter(img => img.id !== idToRemove));
+  };
+
+  const uploadProduct = () => {
+    if (!isFormValid) return;
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      alert('상품이 등록되었습니다! (시뮬레이션)');
+      navigate('main');
+    }, 1500);
+  };
+
+  const actions = (
+    <button
+      onClick={uploadProduct}
+      disabled={!isFormValid || isLoading}
+      className={`px-4 py-1 rounded-md ${isFormValid ? `bg-[${PRIMARY_COLOR}]` : 'bg-gray-700'} transition duration-150`}
+    >
+      <AppFont fontWeight="font-bold" color="text-white">완료</AppFont>
+    </button>
+  );
+
+  return (
+    <CommonLayout 
+      title="중고거래 글쓰기" 
+      actions={actions} 
+      isLoading={isLoading}
+      onBackPressed={() => navigate('main')}
+    >
+      <div className="p-4 space-y-4">
+        {/* Image Picker */}
+        <div className="flex overflow-x-auto pb-2">
+          <button 
+            onClick={pickImages}
+            className="w-20 h-20 flex flex-col items-center justify-center mr-3 border border-gray-600 rounded-md bg-gray-800"
+          >
+            <Camera size={24} className="text-gray-400" />
+            <AppFont fontSize="text-xs" color="text-gray-400">{images.length}/10</AppFont>
+          </button>
+          
+          {images.map(img => (
+            <div key={img.id} className="relative w-20 h-20 mr-3">
+              <div className="w-full h-full bg-gray-600 rounded-md flex items-center justify-center">
+                <AppFont fontSize="text-sm">Image</AppFont>
+              </div>
+              <button 
+                onClick={() => removeImage(img.id)}
+                className="absolute -top-2 -right-2 bg-black rounded-full p-1"
+              >
+                <X size={12} className="text-white" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="h-0.5 w-full bg-gray-700/50"></div>
+
+        {/* Title Input */}
+        <input 
+          type="text"
+          placeholder="글 제목"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full p-0 bg-transparent text-lg border-b border-gray-700/50 focus:outline-none focus:border-white transition"
+        />
+        
+        {/* Price Input */}
+        <input 
+          type="text"
+          placeholder="가격 (₩)"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          className="w-full p-0 bg-transparent text-lg border-b border-gray-700/50 focus:outline-none focus:border-white transition"
+        />
+
+        {/* Description Input */}
+        <textarea
+          placeholder="게시글 내용을 작성해주세요."
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={8}
+          className="w-full p-0 bg-transparent text-base focus:outline-none resize-none"
+        ></textarea>
+      </div>
+    </CommonLayout>
+  );
+};
+
+// --- Main App Router ---
+const App = () => {
+  const [currentPage, setCurrentPage] = useState('main');
+
+  const navigate = (page) => {
+    setCurrentPage(page);
+  };
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'main':
+        return <MainScreen navigate={navigate} />;
+      case 'write':
+        return <ProductWritePage navigate={navigate} />;
+      default:
+        return <MainScreen navigate={navigate} />;
+    }
+  };
+
+  return (
+    <div className="h-[90vh] max-w-sm mx-auto shadow-2xl rounded-xl overflow-hidden bg-[#1C1C1E]">
+      {/* Simulation Frame */}
+      <style>{`
+        body { background-color: #0A0A0A; }
+        ::-webkit-scrollbar { display: none; }
+      `}</style>
+      {renderPage()}
+    </div>
+  );
+};
+
+export default App;
