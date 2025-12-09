@@ -1,127 +1,296 @@
-import 'package:flutter/material.dart';
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 등록 시스템</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
+        .card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .input-field {
+            @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out;
+        }
+        .label-style {
+            @apply block text-sm font-medium text-gray-700 mb-1;
+        }
+        /* 로딩 스피너 애니메이션 */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #ffffff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 flex justify-center items-start min-h-screen">
 
-void main() {
+    <div class="w-full max-w-2xl bg-white card rounded-xl p-6 sm:p-10 mt-6 border border-gray-100">
+        <div class="border-b border-gray-200 pb-6 mb-6">
+            <h1 class="text-3xl font-extrabold text-gray-900 text-center">상품 등록</h1>
+            <p class="text-center text-gray-500 mt-2 text-sm">판매할 상품의 정보를 입력해주세요.</p>
+        </div>
+        
+        <!-- 상태 메시지 영역 -->
+        <div id="status-message" class="mb-6 p-4 rounded-lg text-sm font-medium hidden flex items-center gap-2" role="alert">
+            <span id="status-icon"></span>
+            <span id="status-text"></span>
+        </div>
 
-  runApp(const MyApp());
-}
+        <form id="product-form" class="space-y-6">
+            <!-- 상품명 -->
+            <div>
+                <label for="product-name" class="label-style">상품명 <span class="text-red-500">*</span></label>
+                <input type="text" id="product-name" name="name" required placeholder="예: 아이폰 13 미니" class="input-field">
+            </div>
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+            <!-- 가격 -->
+            <div>
+                <label for="product-price" class="label-style">가격 (₩) <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₩</span>
+                    <input type="number" id="product-price" name="price" required min="0" placeholder="0" class="input-field pl-8">
+                </div>
+            </div>
 
-  @override
-  Widget build(BuildContext context) {
+            <!-- 카테고리 -->
+            <div>
+                <label for="product-category" class="label-style">카테고리 <span class="text-red-500">*</span></label>
+                <select id="product-category" name="category" required class="input-field bg-white appearance-none cursor-pointer">
+                    <option value="" disabled selected>카테고리 선택</option>
+                    <option value="digital">디지털기기</option>
+                    <option value="appliances">생활가전</option>
+                    <option value="furniture">가구/인테리어</option>
+                    <option value="clothing">의류</option>
+                    <option value="books">도서/티켓/음반</option>
+                    <option value="others">기타 중고물품</option>
+                </select>
+            </div>
 
-    return MaterialApp(
-      title: 'Bamtol Market App', // 앱 타이틀 변경
-      
-      theme: ThemeData(
-        // ColorScheme.fromSeed를 사용하여 시드 색상 기반의 색상 테마를 만듭니다.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple), 
-        useMaterial3: true, // Material 3 디자인 시스템 사용
-      ),
- 
-      home: Scaffold(
-        // Scaffold는 앱의 기본적인 구조(바디, 앱바 등)를 제공합니다.
-        body: Center(
-          // Center 위젯은 하위 위젯(이미지)을 화면 중앙에 배치합니다.
-          child: Image.asset(
-            // Image.asset을 사용하여 'pubspec.yaml'에 등록된 경로의 이미지를 표시합니다.
-            'assets/image/logo_simbol.png',
-          ),
-        ),
-      ),
-    );
-  }
-}
+            <!-- 상세 설명 -->
+            <div>
+                <label for="product-description" class="label-style">상세 설명 <span class="text-red-500">*</span></label>
+                <textarea id="product-description" name="description" rows="6" required placeholder="상품의 상태, 구매 시기 등 상세 정보를 입력하세요." class="input-field resize-none"></textarea>
+            </div>
 
+            <!-- 이미지 첨부 (UI Mockup) -->
+            <div>
+                <label class="label-style">상품 이미지</label>
+                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-400 transition-colors cursor-pointer bg-gray-50">
+                    <div class="space-y-1 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <div class="flex text-sm text-gray-600 justify-center">
+                            <span class="relative bg-gray-50 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                파일 업로드
+                            </span>
+                            <p class="pl-1">또는 드래그 앤 드롭</p>
+                        </div>
+                        <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    </div>
+                </div>
+            </div>
 
-name: bamtol_market_app
-description: "A new Flutter project."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+            <!-- 제출 버튼 -->
+            <div class="pt-6">
+                <button type="submit" id="submit-button" class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed">
+                    상품 등록하기
+                </button>
+            </div>
+        </form>
+    </div>
 
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-# In Windows, build-name is used as the major, minor, and patch parts
-# of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+    <script type="module">
+        // ====================================================================
+        // [1] Firebase 설정 및 초기화
+        // ====================================================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-environment:
-  sdk: ^3.10.1
+        // Canvas 환경 변수 로드
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
-dependencies:
-  flutter:
-    sdk: flutter
+        // Firebase가 설정되지 않았을 때의 처리
+        if (Object.keys(firebaseConfig).length === 0) {
+            console.error("Firebase 설정이 없습니다.");
+            displayStatus("시스템 오류: Firebase 설정이 누락되었습니다.", 'error');
+        } else {
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+            
+            // 앱 실행 시 인증 및 컨트롤러 초기화 시작
+            initApp(db, auth);
+        }
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+        // ====================================================================
+        // [2] Repository Layer: 데이터베이스 통신 담당
+        // ====================================================================
+        class ProductRepository {
+            constructor(db, appId) {
+                this.db = db;
+                this.appId = appId;
+            }
 
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
+            async saveProduct(userId, productData) {
+                if (!userId) throw new Error("로그인이 필요합니다.");
 
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
-  flutter_lints: ^6.0.0
+                // 데이터 저장 경로: /artifacts/{appId}/users/{userId}/products
+                const collectionRef = collection(this.db, 'artifacts', this.appId, 'users', userId, 'products');
+                
+                const dataToSave = {
+                    ...productData,
+                    userId: userId,
+                    createdAt: serverTimestamp(), // 서버 시간 사용
+                    updatedAt: serverTimestamp()
+                };
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
+                const docRef = await addDoc(collectionRef, dataToSave);
+                return docRef.id;
+            }
+        }
 
-# The following section is specific to Flutter packages.
-flutter:
+        // ====================================================================
+        // [3] Controller Layer: 비즈니스 로직 및 UI 상태 관리
+        // ====================================================================
+        class ProductWriteController {
+            constructor(repository, auth) {
+                this.repository = repository;
+                this.auth = auth;
+                this.currentUserId = null;
+                
+                // UI 요소 바인딩
+                this.form = document.getElementById('product-form');
+                this.submitButton = document.getElementById('submit-button');
+                
+                // 이벤트 리스너 설정
+                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+                
+                // 인증 상태 모니터링
+                this._initAuth();
+            }
 
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
-  uses-material-design: true
+            _initAuth() {
+                onAuthStateChanged(this.auth, async (user) => {
+                    if (user) {
+                        this.currentUserId = user.uid;
+                        console.log("인증 완료:", this.currentUserId);
+                    } else {
+                        // 자동 로그인 시도
+                        try {
+                            if (initialAuthToken) {
+                                await signInWithCustomToken(this.auth, initialAuthToken);
+                            } else {
+                                await signInAnonymously(this.auth);
+                            }
+                        } catch (error) {
+                            console.error("로그인 실패:", error);
+                            displayStatus("로그인에 실패했습니다.", 'error');
+                        }
+                    }
+                });
+            }
 
-  # To add assets to your application, add an assets section, like this:
-  assets:
-    - assets/image/
-    - assets/svg/
-    - assets/svg/icons/
+            async handleSubmit(event) {
+                event.preventDefault();
 
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
+                if (!this.currentUserId) {
+                    displayStatus("사용자 인증을 기다리고 있습니다...", 'error');
+                    return;
+                }
 
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/to/asset-from-package
+                this.setLoading(true);
 
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+                try {
+                    // 폼 데이터 수집
+                    const formData = new FormData(this.form);
+                    const productData = {
+                        name: formData.get('name'),
+                        price: Number(formData.get('price')),
+                        category: formData.get('category'),
+                        description: formData.get('description'),
+                        imageUrl: null // 이미지 업로드는 추후 구현
+                    };
+
+                    // 유효성 검사
+                    if (!productData.name || productData.price < 0 || !productData.category || !productData.description) {
+                        throw new Error("입력 정보를 다시 확인해주세요.");
+                    }
+
+                    // 데이터 저장
+                    const productId = await this.repository.saveProduct(this.currentUserId, productData);
+                    
+                    // 성공 처리
+                    displayStatus("상품이 성공적으로 등록되었습니다!", 'success');
+                    this.form.reset();
+                    
+                    // 성공 후 3초 뒤 메시지 숨김
+                    setTimeout(() => {
+                        const statusElement = document.getElementById('status-message');
+                        statusElement.classList.add('hidden');
+                    }, 3000);
+
+                } catch (error) {
+                    console.error("등록 실패:", error);
+                    displayStatus(`등록 실패: ${error.message}`, 'error');
+                } finally {
+                    this.setLoading(false);
+                }
+            }
+
+            setLoading(isLoading) {
+                this.submitButton.disabled = isLoading;
+                if (isLoading) {
+                    this.submitButton.innerHTML = '<div class="spinner mr-2"></div> 처리 중...';
+                } else {
+                    this.submitButton.textContent = '상품 등록하기';
+                }
+            }
+        }
+
+        // ====================================================================
+        // [4] Utility: UI 헬퍼 함수
+        // ====================================================================
+        function displayStatus(message, type) {
+            const statusElement = document.getElementById('status-message');
+            const statusIcon = document.getElementById('status-icon');
+            const statusText = document.getElementById('status-text');
+
+            statusElement.classList.remove('hidden', 'bg-green-50', 'text-green-800', 'border-green-200', 'bg-red-50', 'text-red-800', 'border-red-200', 'border');
+            
+            if (type === 'success') {
+                statusElement.classList.add('bg-green-50', 'text-green-800', 'border', 'border-green-200');
+                statusIcon.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            } else {
+                statusElement.classList.add('bg-red-50', 'text-red-800', 'border', 'border-red-200');
+                statusIcon.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            }
+            
+            statusText.textContent = message;
+            statusElement.classList.remove('hidden');
+        }
+
+        // ====================================================================
+        // [5] 앱 초기화 실행
+        // ====================================================================
+        function initApp(db, auth) {
+            const repository = new ProductRepository(db, appId);
+            new ProductWriteController(repository, auth);
+        }
+
+    </script>
+</body>
+</html>
